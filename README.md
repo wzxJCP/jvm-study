@@ -1,4 +1,4 @@
-# JVM入门
+# JVM（java虚拟机）
 
 **面试常见：**
 
@@ -242,9 +242,14 @@ Process finished with exit code 1
 - 编写一个多线程类启动。
 
 ```java
- public static void main(String[] args) { 
-            new Thread(()->{ },"your thread name").start(); 
- }
+public class Demo {
+    public static void main(String[] args) {
+        new Thread(() ->{
+        }, "t1").start();
+    }
+    // 这个Thread是一个类，这个方法定义在这里是不是很诡异！看这个关键字native；
+    private native void test();
+}
 ```
 
 - 点进去看start方法的源码：
@@ -254,9 +259,7 @@ public synchronized void start() {
       
         if (threadStatus != 0)
             throw new IllegalThreadStateException();
-
         group.add(this);
-
         boolean started = false;
         try {
             start0();	// 调用了一个start0方法
@@ -275,24 +278,41 @@ public synchronized void start() {
     private native void start0();
 ```
 
-- **凡是带了native关键字的，说明 java的作用范围达不到，去调用底层C语言的库！**
-- **JNI：Java Native Interface（Java本地方法接口）**
+在Java编程语言中，“Native”通常指的是与Java虚拟机（JVM）外部的系统进行交互的功能。这些功能主要通过Java Native Interface (JNI) 来实现，允许Java代码调用本地方法或从本地方法调用Java方法。这里的“本地”是指操作系统本身的环境，包括C、C++等编程语言编写的程序。
+
+**Java Native Interface (JNI) 的用途：**
+
+1. 性能优化：对于某些需要大量计算或对性能要求极高的任务，使用本地代码可以比纯Java代码提供更好的执行效率；
+2. 访问硬件资源：有些情况下，可能需要直接访问硬件设备（如打印机、摄像头等），而这些操作在Java标准库中没有提供，这时可以通过JNI来实现；
+3. 使用现有库：如果已经存在一些用C/C++等语言编写的库，并且希望在Java应用中重用这些库，JNI提供了一种方式来实现这一点；
+4. 跨平台开发：虽然Java本身是跨平台的，但在某些特定场景下，可能需要编写针对不同平台的本地代码，以利用特定的操作系统特性。
+
+**使用JNI的步骤：**
+
+- **定义本地方法**：首先在Java类中声明一个或多个本地方法，这些方法前需要加上`native`关键字；
+- **加载本地库**：使用`System.loadLibrary()`方法加载包含本地方法实现的动态链接库（DLL，在Windows上）或共享对象文件（.so，在Linux/Unix上）；
+- **实现本地方法**：使用C/C++等语言编写本地方法的具体实现，并将其编译成动态链接库；
+- **调用本地方法**：在Java应用程序中像调用普通Java方法一样调用这些本地方法。
+
+尽管JNI为Java提供了强大的扩展能力，但它也增加了程序的复杂性和维护难度，因此在决定是否使用JNI时需要权衡利弊。
+
+- 凡是带了native关键字的，说明 java的作用范围达不到，去调用底层C语言的库；
+- JNI：Java Native Interface（Java本地方法接口）；
 - 凡是带了native关键字的方法就会进入本地方法栈；
-- **Native Method Stack** 本地方法栈
-- 本地接口的作用是融合不同的编程语言为Java所用，它的初衷是融合C/C++程序，Java在诞生的时候是C/C++横行的时候，想要立足，必须有调用C、C++的程序，于是就在内存中专门开辟了一块区域处理标记为native的代码，它的具体做法是 在 Native Method Stack 中登记native方法，在 ( ExecutionEngine ) 执行引擎执行的时候加载Native Libraies。
+- Native Method Stack（本地方法栈）；
+- 本地接口的作用是融合不同的编程语言为Java所用，它的初衷是融合C/C++程序，Java在诞生的时候是C/C++横行的时候，想要立足，必须有调用C、C++的程序，于是就在内存中专门开辟了一块区域处理标记为native的代码，它的具体做法是 在 Native Method Stack 中登记native方法，在 ( ExecutionEngine ) 执行引擎执行的时候加载Native Libraies；
 - 目前该方法使用的越来越少了，除非是与硬件有关的应用，比如通过Java程序驱动打印机或者Java系统管理生产设备，在企业级应用中已经比较少见。因为现在的异构领域间通信很发达，比如可以使用Socket通信，也可以使用Web Service等等，不多做介绍！
 
 ## 7.PC寄存器
 
-**程序计数器：**Program Counter Register
+程序计数器：Program Counter Register。
 
-- 每个线程都有一个程序计数器，是线程私有的，就是一个指针，指向方法区中的方法字节码(用来存储指向像一条指令的地址，也即将要执行的指令代码)，在执行引擎读取下一条指令，是一个非常小的内存空间，几乎可以忽略不计。
+每个线程都有一个程序计数器，是线程私有的，就是一个指针，指向方法区中的方法字节码(用来存储指向像一条指令的地址，也即将要执行的指令代码)，在执行引擎读取下一条指令，是一个非常小的内存空间，几乎可以忽略不计。
 
 ## 8.方法区
 
-**Method Area 方法区**
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621224842497.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+Method Area（方法区）
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\10.png)
 
 - 方法区是被所有线程共享，所有字段和方法字节码，以及一些特殊方法，如构造函数，接口代码也在此定义，简单说，所有定义的方法的信息都保存在该区域，**此区域属于共享区间;**
 - 静态变量、常量、类信息(构造方法、接口定义)、运行时的常量池存在方法区中，但是实例变量存在堆内存中，和方法区无关。
@@ -302,7 +322,7 @@ public synchronized void start() {
 
 - 在计算机流传有一句废话： 程序 = 算法 + 数据结构
 - 但是对于大部分同学都是： 程序 = 框架 + 业务逻辑
-- 栈：后进先出 / 先进后出
+- 栈：先进后出 / 后进先出
 - 队列：先进先出（FIFO : First Input First Output）
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621224905303.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
@@ -758,7 +778,7 @@ public class Demo03 {
 
 
 
-## 99P05 6.N
+## 99P06 9.栈
 
 # JVM 面试题
 
