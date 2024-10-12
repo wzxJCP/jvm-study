@@ -314,29 +314,26 @@ public synchronized void start() {
 Method Area（方法区）
 ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\10.png)
 
-- 方法区是被所有线程共享，所有字段和方法字节码，以及一些特殊方法，如构造函数，接口代码也在此定义，简单说，所有定义的方法的信息都保存在该区域，**此区域属于共享区间;**
+- 方法区是被所有线程共享，所有字段和方法字节码，以及一些特殊方法，如构造函数，接口代码也在此定义，简单说，所有定义的方法的信息都保存在该区域，**此区域属于共享区间**;
 - 静态变量、常量、类信息(构造方法、接口定义)、运行时的常量池存在方法区中，但是实例变量存在堆内存中，和方法区无关。
 - static ，final ，Class ，常量池~
 
-## 9.栈
+## 9.栈（Stack）
 
-- 在计算机流传有一句废话： 程序 = 算法 + 数据结构
-- 但是对于大部分同学都是： 程序 = 框架 + 业务逻辑
-- 栈：先进后出 / 后进先出
-- 队列：先进先出（FIFO : First Input First Output）
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621224905303.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+- 在计算机流传有一句废话：程序 = 算法 + 数据结构；
+- 但是对于大部分同学都是：程序 = 框架 + 业务逻辑；
+- 队列：先进先出（FIFO : First Input First Output）；
+- 栈：先进后出 / 后进先出。
 
 **栈管理程序运行**
 
 - 存储一些基本类型的值、对象的引用、方法等。
-- **栈的优势是，存取速度比堆要快，仅次于寄存器，栈数据可以共享。**
+- 栈的优势是，存取速度比堆要快，仅次于寄存器，栈数据可以共享。
 
 思考：为什么main方法最后执行！为什么一个test() 方法执行完了，才会继续走main方法！
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\11.png)
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621224919335.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-> **喝多了吐就是栈，吃多了拉就是队列**。
+**浏览器历史记录就是栈，银行排队办业务就是队列**。
 
 说明：
 
@@ -348,7 +345,7 @@ Method Area（方法区）
 
 - 8大基本类型 + 对象的引用 + 实例的方法
 
-> **栈运行原理**
+**栈运行原理**
 
 - Java栈的组成元素——栈帧。
 - 栈帧是一种用于帮助虚拟机执行方法调用与方法执行的数据结构。他是独立于线程的，一个线程有自己的一个栈帧。封装了方法的局部变量表、动态链接信息、方法的返回地址以及操作数栈等信息。
@@ -357,44 +354,42 @@ Method Area（方法区）
 > 当一个方法A被调用时就产生了一个栈帧F1，并被压入到栈中，A方法又调用了B方法，于是产生了栈帧F2也被压入栈中，B方法又调用了C方法，于是产生栈帧F3也被压入栈中 执行完毕后，先弹出F3， 然后弹出F2，在弹出F1........
 
 - 遵循 “先进后出” / "后进先出" 的原则。
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621224937353.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\12.png)
 
 - 栈满了，抛出异常：stackOverflowError
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621224952953.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\13.png)
 
 - 对象实例化的过程。
 
 ## 10.三种JVM
 
-- Sun公司HotSpot java Hotspot™64-Bit server vw (build 25.181-b13，mixed mode)
-- BEA JRockit
-- IBM 39 VM
-- 我们学习都是：Hotspot
+- Sun公司HotSpot java Hotspot™64-Bit server vw (build 25.181-b13，mixed mode)；
+- BEA JRockit；
+- IBM 39 VM；
+- 我们学习都是：HotSpot。
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\14.png)
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225019127.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+## 11.堆（Heap）
 
-## 11.堆
-
-**Java7**之前
+Java7之前
 
 - Heap 堆，一个JVM实例只存在一个堆内存，堆内存的大小是可以调节的。
 - 类加载器读取了类文件后，需要把类，方法，常变量放到堆内存中，保存所有引用类型的真实信息，以方便执行器执行。
 - 堆内存分为三部分：
-  - 新生区 Young Generation Space Young/New
-  - 养老区 Tenure generation space Old/Tenure
-  - 永久区 Permanent Space Perm
-- 堆内存逻辑上分为三部分：新生，养老，永久（元空间 : JDK8 以后名称）。
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225034545.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+  - 新生区 Young Generation Space Young/New；
+  - 养老区 Tenure generation space Old/Tenure；
+  - 永久区 Permanent Space Perm。
+- 堆内存逻辑上分为三部分：新生，养老，永久（元空间 : JDK8 以后名称）。![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\15.png)
 
 **谁空谁是to**
 
-- **GC**垃圾回收主要是在新生区和养老区，又分为轻GC 和 重GC，如果内存不够，或者存在死循环，就会导致![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225116754.png#pic_center)
+- **GC**垃圾回收主要是在新生区和养老区，又分为轻GC 和 重GC，如果内存不够，或者存在死循环，就会导致
+
+  `Exception in thread "main" java.lang.OutOfMemoryError: Overflow: String length out of range`
+
 - 在JDK8以后，永久存储区改了个名字(元空间)。
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225049387.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\16.png)
 
 ## 12.新生区、养老区
 
@@ -778,7 +773,7 @@ public class Demo03 {
 
 
 
-## 99P06 9.栈
+## 99P08 12.
 
 # JVM 面试题
 
