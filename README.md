@@ -9,6 +9,8 @@
 5. 内存快照如何抓取？怎么分析Dump文件？
 6. 谈谈JVM中，类加载器你的认识？
 
+[虚拟机]是一种抽象化的计算机，通过在实际的计算机上[仿真模拟]各种计算机功能来实现的。[Java]虚拟机有自己完善的[硬体]架构，如处理器、[堆栈]、[寄存器]等，还具有相应的指令系统。Java虚拟机屏蔽了与具体操作系统平台相关的信息，使得Java程序只需生成在Java虚拟机上运行的[目标代码]（字节码），就可以在多种平台上不加修改地运行。
+
 ## 1.JVM的位置
 
 ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\1.png)
@@ -394,14 +396,14 @@ Java7之前
 ## 12.新生区、养老区
 
 - 新生区是类诞生，成长，消亡的区域，一个类在这里产生，应用，最后被垃圾回收器收集，结束生命。
-- 新生区又分为两部分：伊甸区（Eden Space）和幸存者区（Survivor Space），所有的类都是在伊甸区被new出来的，幸存区有两个：0区 和 1区，当伊甸园的空间用完时，程序又需要创建对象，JVM的垃圾回收器将对伊甸园区进行垃圾回收（Minor GC）。将伊甸园中的剩余对象移动到幸存0区，若幸存0区也满了，再对该区进行垃圾回收，然后移动到1区，那如果1区也满了呢？（这里幸存0区和1区是一个互相交替的过程）再移动到养老区，若养老区也满了，那么这个时候将产生MajorGC（Full GC），进行养老区的内存清理，若养老区执行了Full GC后发现依然无法进行对象的保存，就会产生OOM异常 “OutOfMemoryError ”。如果出现 java.lang.OutOfMemoryError：java heap space异常，说明Java虚拟机的堆内存不够，原因如下：
+- 新生区又分为两部分：**伊甸区（Eden Space）**和**幸存者区（Survivor Space）**，所有的类都是在伊甸区被new出来的，幸存区有两个：0区 和 1区，当伊甸园的空间用完时，程序又需要创建对象，JVM的垃圾回收器将对伊甸园区进行垃圾回收（Minor GC）。将伊甸园中的剩余对象移动到幸存0区，若幸存0区也满了，再对该区进行垃圾回收，然后移动到1区，那如果1区也满了呢？（这里幸存0区和1区是一个互相交替的过程）再移动到养老区，若养老区也满了，那么这个时候将产生MajorGC（Full GC），进行养老区的内存清理，若养老区执行了Full GC后发现依然无法进行对象的保存，就会产生OOM异常 “OutOfMemoryError ”。如果出现 java.lang.OutOfMemoryError：java heap space异常，说明Java虚拟机的堆内存不够，原因如下：
   - 1、Java虚拟机的堆内存设置不够，可以通过参数 -Xms（初始值大小），-Xmx（最大大小）来调整。
   - 2、代码中创建了大量大对象，并且长时间不能被垃圾收集器收集（存在被引用）或者死循环。
 
 ## 13.永久区（Perm）
 
-- 永久存储区是一个常驻内存区域，用于存放JDK自身所携带的Class，Interface的元数据，也就是说它存储的是运行环境必须的类信息，被装载进此区域的数据是不会被垃圾回收器回收掉的，关闭JVM才会释放此区域所占用的内存。
-- 如果出现 java.lang.OutOfMemoryError：PermGen space，说明是 Java虚拟机对永久代Perm内存设置不够。一般出现这种情况，都是程序启动需要加载大量的第三方jar包，
+- 永久存储区是一个常驻内存区域，用于存放JDK自身所携带的Class，Interface的元数据，也就是说它存储的是运行环境必须的类信息，被装载进此区域的数据是不会被垃圾回收器回收掉的，关闭JVM才会释放此区域所占用的内存；
+- 如果出现`java.lang.OutOfMemoryError：PermGen space`，说明是 Java虚拟机对永久代Perm内存设置不够。一般出现这种情况，都是程序启动需要加载大量的第三方jar包；
 - 例如：在一个Tomcat下部署了太多的应用。或者大量动态反射生成的类不断被加载，最终导致Perm区被占满。
 
 **注意：**
@@ -410,13 +412,13 @@ Java7之前
 - JDK1.7： 有永久代，但是已经逐步 “去永久代”，常量池1.7在堆；
 - JDK1.8及之后：无永久代，常量池1.8在元空间。
 
-**熟悉三区结构后方可学习**JVM垃圾回收机制
+**熟悉三区结构后方可学习** JVM垃圾回收机制
 
 - 实际而言，方法区（Method Area）和堆一样，是各个线程共享的内存区域，它用于存储虚拟机加载的：类信息+普通常量+静态常量+编译器编译后的代码，虽然JVM规范将方法区描述为**堆的一个逻辑部分，但它却还有一个别名，叫做Non-Heap（非堆），目的就是要和堆分开**。
 - 对于HotSpot虚拟机，很多开发者习惯将方法区称之为 “永久代（Parmanent Gen）”，但严格本质上说两者不同，或者说使用永久代实现方法区而已，永久代是方法区（相当于是一个接口interface）的一个实现，Jdk1.7的版本中，已经将原本放在永久代的字符串常量池移走。
-- 常量池（Constant Pool）是方法区的一部分，Class文件除了有类的版本，字段，方法，接口描述信息外，还有一项信息就是常量池，这部分内容将在类加载后进入方法区的运行时常量池中存放！
+- 常量池（Constant Pool）是方法区的一部分，Class文件除了有类的版本，字段，方法，接口描述信息外，还有一项信息就是常量池，这部分内容将在类加载后进入方法区的运行时**常量池**中存放！
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225139144.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\17.png)
 
 ## 14.堆内存调优
 
@@ -424,35 +426,38 @@ Java7之前
 - -Xmx：最大分配内存，默认为物理内存的 “1/4”。
 - -XX:+PrintGCDetails：输出详细的GC处理日志。
 
-> 测试1
+### 1、测试1 调优
 
-**代码测试**
+代码测试
 
 ```java
-public class Demo01 {
+package com.xing.jvmstudy.heap;
+
+public class JvmTest {
     public static void main(String[] args) {
         // 返回虚拟机试图使用的最大内存
-        long max = Runtime.getRuntime().maxMemory();    // 字节：1024*1024
+        long max = Runtime.getRuntime().maxMemory(); // 字节：1024*1024
         // 返回jvm的总内存
         long total = Runtime.getRuntime().totalMemory();
-
-        System.out.println("max=" + max + "字节\t" + (max/(double)1024/1024) + "MB");
-
-        System.out.println("total=" + total + "字节\t" + (total/(double)1024/1024) + "MB");
-
-        // 默认情况下:分配的总内存是电脑内存的1/4,初始化的内存是电脑的1/64
-
+        System.out.println("max=" + max + "字节\t" + (max /(double)1024 / 1024) + "MB");
+        System.out.println("total=" + total + "字节\t" + (total/(double)1024 / 1024) + "MB");
+        /** 认情况下:分配的总内存是电脑内存的1/4,初始化的内存是电脑的1/64
+         * 电脑内存：15.7GB 当前使用12.9GB
+         * max=4223664128字节	4028.0MB
+         * total=264241152字节	252.0MB
+         *
+         * +VM测试：-Xms1024m -Xmx1024m -XX:+PrintGCDetails
+         * max=1073741824字节	1024.0MB
+         * total=1073741824字节	1024.0MB
+         * 1048576K ÷ 1024 = 1024.0 MB
+         */
     }
 }
 ```
 
 - **IDEA**中进行VM调优参数设置，然后启动。
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/2021062122515494.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225203205.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-- 发现，默认的情况下分配的内存是总内存的 1/4，而初始化的内存为 1/64 ！
+发现，默认的情况下分配的内存是总内存的 1/4，而初始化的内存为 1/64 ！
 
 ```java
 -Xms1024m -Xmx1024m -XX:+PrintGCDetails
@@ -460,33 +465,29 @@ public class Demo01 {
 
 - VM参数调优：把初始内存，和总内存都调为 1024M，运行，查看结果！
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225214968.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\18.png)
 
 - 来大概计算分析一下！
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225224333.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+garbage-first heap：1048576K ÷ 1024 = 1024.0 MB。
 
 - 再次证明：元空间并不在虚拟机中，而是使用本地内存。
 
-> 测试2
+### 2、测试2 调优
 
 代码：
 
 ```java
-package github.JVM.Demo02;
+package com.xing.jvmstudy.heap;
 
 import java.util.Random;
 
-/**
- * @author subeiLY
- * @create 2021-06-08 10:22
- */
-public class Demo02 {
+//+VM测试：-Xms8m -Xmx8m -XX:+PrintGCDetails
+public class Test {
     public static void main(String[] args) {
-        String str = "suneiLY";
+        String str = "hello";
         while (true) {
-            str += str + new Random().nextInt(88888888)
-                    + new Random().nextInt(999999999);
+            str+=str + new Random().nextInt(323523234) + new Random().nextInt(678768568);
         }
     }
 }
@@ -500,59 +501,57 @@ public class Demo02 {
 
 - 测试，查看结果！
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225233536.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\19.png)
 
-- 这是一个young 区域撑爆的JAVA 内存日志，其中 PSYoungGen 表示 youngGen分区的变化1536k 表示 GC 之前的大小。
-- 488k 表示GC 之后的大小。
-- 整个Young区域的大小从 1536K 到 672K , young代的总大小为 7680K。
+- 这是一个Metaspace（元空间）区域撑爆的JAVA 内存日志，Metaspace表示分区的变化1506k 表示 GC 之前的大小。
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225244781.png#pic_center)
+user – 总计本次 GC 总线程所占用的总 CPU 时间。
 
-- user – 总计本次 GC 总线程所占用的总 CPU 时间。
-- sys – OS 调用 or 等待系统时间。
-- real – 应用暂停时间。
-- 如果GC 线程是 Serial Garbage Collector 串行搜集器的方式的话（只有一条GC线程,）， real time 等于user 和 system 时间之和。
-- 通过日志发现Young的区域到最后 GC 之前后都是0，old 区域 无法释放，最后报堆溢出错误。
+sys – OS 调用 or 等待系统时间。
+
+real – 应用暂停时间。
+
+如果GC 线程是 Serial Garbage Collector 串行搜集器的方式的话（只有一条GC线程），real time 等于user 和 system 时间之和。
+
+通过日志发现Young的区域到最后 GC 之前后都是0，old 区域 无法释放，最后报堆溢出错误。
 
 **其他文章链接**
 
 - [一文读懂 - 元空间和永久代](https://juejin.cn/post/684490402096480257)
 - [Java方法区、永久代、元空间、常量池详解](https://blog.csdn.net/u011635492/article/details/81046174?utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-2.control&dist_request_id=1331647.219.16183160373688617&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-2.control)
 
-## 15.GC
+## 15.GC（垃圾回收机制）
 
-### 1.Dump内存快照
+垃圾回收机制（Garbage collection）：当需要分配的内存空间不再使用的时候，JVM将调用垃圾回收机制来回收内存空间。
+
+### 1、Dump内存快照
 
  在运行java程序的时候，有时候想测试运行时占用内存情况，这时候就需要使用测试工具查看了。在eclipse里面有 **Eclipse Memory Analyzer tool(MAT)**插件可以测试，而在idea中也有这么一个插件，就是**JProfiler**，一款性能瓶颈分析工具！
 
-**作用**：
+作用：
 
 - 分析Dump文件，快速定位内存泄漏；
-- 获得堆中对象的统计数据
-- 获得对象相互引用的关系
-- 采用树形展现对象间相互引用的情况
+- 获得堆中对象的统计数据；
+- 获得对象相互引用的关系；
+- 采用树形展现对象间相互引用的情况。
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225310810.png#pic_center)
+↓↓↓
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\20.png)
 
-> 安装JProﬁler
+安装JProﬁler
 
-1. IDEA插件安装
+1、IDEA插件安装
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225332813.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+- Settings→Plugins中安装JProﬁler插件。
 
-1. 安装JProﬁler监控软件
+2、安装JProﬁler监控软件
 
-- 下载地址：[https://www.ej-technologies.com/download/jproﬁler/version_92](https://www.ej-technologies.com/download/jprofiler/version_92)
+- 下载地址：https://www.ej-technologies.com/
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225348141.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+3、下载完双击运行，选择自定义目录安装，点击Next。
 
-1. 下载完双击运行，选择自定义目录安装，点击Next。
-
-- 注意：安装路径，**建议选择一个文件名中没有中文，没有空格的路径** ，否则识别不了。然后一直点Next。
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225401368.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-1. 注册
+- 注意：安装路径，**建议选择一个文件名中没有中文，没有空格的路径**，否则识别不了。然后一直点Next。
+- 注册
 
 ```java
 // 注册码仅供大家参考
@@ -563,64 +562,51 @@ L-Larry_Lau@163.com#99016-hli5ay1ylizjj#27215
 L-Larry_Lau@163.com#40775-3wle0g1uin5c1#0674
 ```
 
-1. 配置IDEA运行环境
+- 配置IDEA运行环境
 
-- Settings–Tools–JProﬂier–JProﬂier executable选择JProﬁle安装可执行文件。（如果系统只装了一个版本， 启动IDEA时会默认选择）保存。
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225412283.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+- Settings–Tools–JProﬂier–JProﬂier executable选择JProﬁle安装可执行文件。（如果系统只装了一个版本， 启动IDEA时会默认选择）保存（我的地址：E:\Software\SRun\jprofiler14\bin\jprofiler.exe）。
 
 - 代码测试：
 
 ```java
-package github.JVM.Demo02;
-
+package com.xing.jvmstudy.heap;
 import java.util.ArrayList;
-
-/**
- * @author subeiLY
- * @create 2021-06-08 11:13
- */
-public class Demo03 {
-    byte[] byteArray = new byte[1*1024*1024]; // 1M = 1024K
-
-
+// -Xms设置初始化内存分配大小 1/64
+// -Xmx没置最大分配内存，默认1/4
+// -Xms1024m -Xmx1024m -XX:+PrintGCDetails        //打印GC拉圾回收信息
+// -Xms1m -Xmx8m -XX:+HeapDumpOnOutOfMemoryError  //oom DUMP
+public class Test03 {
+    byte[] array = new byte[1*1024*1024]; // 10M 1M=1024k
     public static void main(String[] args) {
-        ArrayList<Demo03> list = new ArrayList<>();
+        ArrayList<Test03> list = new ArrayList<>();
         int count = 0;
         try {
             while (true) {
-                list.add(new Demo03());  // 问题所在
-                count = count + 1;
+                list.add(new Test03()); // 问题所在
+                count = count+1;
             }
-        } catch (Error e) {
-            System.out.println("count:" + count);
+        } catch (Exception e) { //Error测试
+            System.out.println("count:"+count);
             e.printStackTrace();
         }
     }
 }
+
+/**
+ * count:335
+ * java.lang.OutOfMemoryError: Java heap space
+ */
 ```
 
-- vm参数 ： `-Xms1m -Xmx8m -XX:+HeapDumpOnOutOfMemoryError`
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225421179.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-- 寻找文件：
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225442999.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-> 使用 Jproﬁler 工具分析查看
-
-双击这个文件默认使用 Jproﬁler 进行 Open大的对象！
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225452677.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225503142.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225512661.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
+- vm参数 ： `-Xms1m -Xmx8m -XX:+HeapDumpOnOutOfMemoryError`；
+- 在启动项Edit→Modify options→add VM options 中添加vm参数；
+- 然后run再启动项，单机运行启动项的类目→Open In→Explorer寻找.hprof文件；
+- 双击新生成的 java_pid25864.hprof 文件，使用 Jproﬁler 工具分析查看；
+- 点击这个文件 堆遍历器→当前对象集→最大对象进行查看；
+- 点击这个文件 堆遍历器→线程转储→所有线程组的main中查看错误的具体位置（行数）！
 - 从软件开发的角度上，dump文件就是当程序产生异常时，用来记录当时的程序状态信息（例如堆栈的状态），用于程序开发定位问题。
 
-### 2.GC四大算法
+### 2、GC四大算法
 
 #### 1.引用计数法
 
@@ -773,7 +759,7 @@ public class Demo03 {
 
 
 
-## 99P08 12.
+## 99P10 15.2
 
 # JVM 面试题
 
