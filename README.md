@@ -660,7 +660,7 @@ public class Test03 {
 - 清除：遍历整个堆，把未标记的对象清除。
 - 缺点：这个算法需要暂停整个应用，会产生内存碎片。两次扫描，严重浪费时间。
 
-> 用通俗的话解释一下 标记/清除算法，就是当程序运行期间，若可以使用的内存被耗尽的时候，GC线程就会被触发并将程序暂停，随后将依旧存活的对象标记一遍，最终再将堆中所有没被标记的对象全部清 除掉，接下来便让程序恢复运行。
+用通俗的话解释一下 标记/清除算法，就是当程序运行期间，若可以使用的内存被耗尽的时候，GC线程就会被触发并将程序暂停，随后将依旧存活的对象标记一遍，最终再将堆中所有没被标记的对象全部清 除掉，接下来便让程序恢复运行。
 
 **劣势：**
 
@@ -673,44 +673,40 @@ public class Test03 {
 
 **什么是标记压缩？**
 
-**原理：**
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/2021062122575235.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225801551.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+原理：
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\28.png)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\29.png)
 
 - 在整理压缩阶段，不再对标记的对象作回收，而是通过所有存活对象都像一端移动，然后直接清除边界以外的内存。可以看到，标记的存活对象将会被整理，按照内存地址依次排列，而未被标记的内存会被 清理掉，如此一来，当我们需要给新对象分配内存时，JVM只需要持有一个内存的起始地址即可，这比维护一个空闲列表显然少了许多开销。
 - 标记、整理算法 不仅可以弥补 标记、清除算法当中，内存区域分散的缺点，也消除了复制算法当中，内存减半的高额代价；
 
 #### 4.标记清除压缩
 
-- 先标记清除几次，再压缩。
+先标记清除几次，再压缩。
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\30.png)
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/2021062122581315.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
-
-### 3.总结
+### 3、总结
 
 - 内存效率：复制算法 > 标记清除算法 > 标记压缩算法 （时间复杂度）；
 - 内存整齐度：复制算法 = 标记压缩算法 > 标记清除算法；
 - 内存利用率：标记压缩算法 = 标记清除算法 > 复制算法；
 
- 可以看出，效率上来说，复制算法是当之无愧的老大，但是却浪费了太多内存，而为了尽量兼顾上面所 提到的三个指标，标记压缩算法相对来说更平滑一些 ， 但是效率上依然不尽如人意，它比复制算法多了一个标记的阶段，又比标记清除多了一个整理内存的过程。
+可以看出，效率上来说，复制算法是当之无愧的老大，但是却浪费了太多内存，而为了尽量兼顾上面所提到的三个指标，标记压缩算法相对来说更平滑一些 ， 但是效率上依然不尽如人意，它比复制算法多了一个标记的阶段，又比标记清除多了一个整理内存的过程。
 
-> 难道就没有一种最优算法吗？
->
-> 答案： 无，没有最好的算法，只有最合适的算法 。 -----------> 分代收集算法
+难道就没有一种最优算法吗？   
+答案： 无，没有最好的算法，只有最合适的算法。--->GC：分代收集算法
 
 **年轻代：**（Young Gen）
 
-- 年轻代特点是区域相对老年代较小，对象存活低。
+- 年轻代特点是区域相对老年代较小，对象存活低；
 - 这种情况复制算法的回收整理，速度是最快的。复制算法的效率只和当前存活对象大小有关，因而很适 用于年轻代的回收。而复制算法内存利用率不高的问题，通过hotspot中的两个survivor的设计得到缓解。
 
 **老年代：**（Tenure Gen）
 
-- 老年代的特点是区域较大，对象存活率高！
+- 老年代的特点是区域较大，对象存活率高；
 - 这种情况，存在大量存活率高的对象，复制算法明显变得不合适。一般是由标记清除或者是标记清除与标记整理的混合实现。Mark阶段的开销与存活对象的数量成正比，这点来说，对于老年代，标记清除或 者标记整理有一些不符，但可以通过多核多线程利用，对并发，并行的形式提标记效率。Sweep阶段的 开销与所管理里区域的大小相关，但Sweep “就地处决” 的 特点，回收的过程没有对象的移动。使其相对其他有对象移动步骤的回收算法，仍然是是效率最好的，但是需要解决内存碎片的问题。
 
-## 16.JMM
+## 16.JMM（java内存模型）
 
 1. 什么是JMM？
    - JMM：（Java Memory Model的缩写）（Java内存模型）
@@ -718,16 +714,15 @@ public class Test03 {
    - 作用：缓存一致性协议，用于定义数据读写的规则(遵守，找到这个规则)。
    - JMM定义了线程工作内存和主内存之间的抽象关系∶线程之间的共享变量存储在主内存(Main Memory)中，每个线程都有一个私有的本地内存（Local Memory)。
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225826231.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+图
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\31.png)
 
 - 解决共享对象可见性这个问题：volilate
 
 1. 它该如何学习？
    - JMM：抽象的概念，理论。
 
-- JMM对这八种指令的使用
-
-  ，制定了如下规则：
+- JMM对这八种指令的使用，制定了如下规则：
 
   - 不允许read和load、store和write操作之一单独出现。即使用了read必须load，使用了store必须write。
   - 不允许线程丢弃他最近的assign操作，即工作变量的数据改变了之后，必须告知主存。
@@ -740,19 +735,7 @@ public class Test03 {
 
 　　JMM对这八种操作规则和对[volatile的一些特殊规则](https://www.cnblogs.com/null-qige/p/8569131.html)就能确定哪里操作是线程安全，哪些操作是线程不安全的了。但是这些规则实在复杂，很难在实践中直接分析。所以一般我们也不会通过上述规则进行分析。更多的时候，使用java的happen-before规则来进行分析。
 
-欢迎查阅
-
-本文作者：subeiLY
-
-本文链接：https://www.cnblogs.com/gh110/p/14917326.html
-
-版权声明：本作品采用知识共享署名-非商业性使用-禁止演绎 3.0 中国大陆许可协议进行许可。[许可协议](https://creativecommons.org/licenses/by-nc-sa/3.0/cn/legalcode)进行许可。
-
-[好文要顶](javascript:void(0);)[关注我](javascript:void(0);)[收藏该文](javascript:void(0);)打赏[微信分享](javascript:void(0);)
-
-
-
-## 99P10 15.2
+## 99 end. YYDS：https://www.bilibili.com/video/BV1iJ411d7jS
 
 # JVM 面试题
 
