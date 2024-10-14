@@ -609,8 +609,7 @@ public class Test03 {
 ### 2、GC四大算法
 
 #### 1.引用计数法
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225533583.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\21.png)
 
 - 每个对象有一个引用计数器，当对象被引用一次则计数器加1，当对象引用失效一次，则计数器减1，对于计数器为0的对象意味着是垃圾对象，可以被GC回收。
 - 目前虚拟机基本都是采用可达性算法，从GC Roots 作为起点开始搜索，那么整个连通图中的对象边都是活对象，对于GC Roots 无法到达的对象变成了垃圾回收对象，随时可被GC回收。
@@ -620,51 +619,45 @@ public class Test03 {
 - 年轻代中使用的是Minor GC，采用的就是复制算法（Copying）。
 
 **什么是复制算法？**
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225552897.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\22.png)
 
 - Minor GC 会把Eden中的所有活的对象都移到Survivor区域中，如果Survivor区中放不下，那么剩下的活的对象就被移动到Old generation中，**也就是说，一旦收集后，Eden就是变成空的了**
 - 当对象在Eden（包括一个Survivor区域，这里假设是From区域）出生后，在经过一次Minor GC后，如果对象还存活，并且能够被另外一块Survivor区域所容纳 （上面已经假设为from区域，这里应为to区域，即to区域有足够的内存空间来存储Eden 和 From 区域中存活的对象），则使用**复制算法**将这些仍然还活着的对象复制到另外一块Survivor区域（即 to 区域）中，然后清理所使用过的Eden 以及Survivor 区域（即form区域），并且将这些对象的年龄设置为1，以后对象在Survivor区，每熬过一次MinorGC，就将这个对象的年龄 + 1，当这个对象的年龄达到某一个值的时候（默认是15岁，通过- XX:MaxTenuringThreshold 设定参数）这些对象就会成为老年代。
 - `-XX:MaxTenuringThreshold` 任期门槛=>设置对象在新生代中存活的次数
 
-> 面试题：如何判断哪个是to区呢？一句话：**谁空谁是to**
+**面试题：如何判断哪个是to区呢？一句话：谁空谁是to**
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225611642.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\23.png)
 
 **原理解释：**
 
 - 年轻代中的GC，主要是复制算法（Copying）
 - HotSpot JVM 把年轻代分为了三部分：一个 Eden 区 和 2 个Survivor区（from区 和 to区）。默认比例为 8:1:1，一般情况下，新创建的对象都会被分配到Eden区（一些大对象特殊处理），这些对象经过第一次Minor GC后，如果仍然存活，将会被移到Survivor区，对象在Survivor中每熬过一次Minor GC ， 年龄就会增加1岁，当它的年龄增加到一定程度时，就会被移动到年老代中，因为年轻代中的对象基本上 都是朝生夕死，所以在年轻代的垃圾回收算法使用的是复制算法！复制算法的思想就是将内存分为两块，每次只用其中一块，当这一块内存用完，就将还活着的对象复制到另外一块上面。复制算法不会产 生内存碎片！
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225624904.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\24.png)
 
 - 在GC开始的时候，对象只会在Eden区和名为 “From” 的Survivor区，Survivor区“TO” 是空的，紧接着进行GC，Eden区中所有存活的对象都会被复制到 “To”，而在 “From” 区中，仍存活的对象会更具他们的年龄值来决定去向。
 - 年龄达到一定值的对象会被移动到老年代中，没有达到阈值的对象会被复制到 “To 区域”，经过这次GC后，Eden区和From区已经被清空，这个时候， “From” 和 “To” 会交换他们的角色， 也就是新的 “To” 就是GC前的“From” ， 新的 “From” 就是上次GC前的 “To”。
 - 不管怎样，都会保证名为To 的Survicor区域是空的。 Minor GC会一直重复这样的过程。直到 To 区 被填满 ，“To” 区被填满之后，会将所有的对象移动到老年代中。
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225635376.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\25.png)
 
 - 因为Eden区对象一般存活率较低，一般的，使用两块10%的内存作为空闲和活动区域，而另外80%的内存，则是用来给新建对象分配内存的。一旦发生GC，将10%的from活动区间与另外80%中存活的Eden 对象转移到10%的to空闲区域，接下来，将之前的90%的内存，全部释放，以此类推；
 - 好处：没有内存碎片；坏处：浪费内存空间。
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\26.png)
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225650554.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+劣势：复制算法它的缺点也是相当明显的。
 
-**劣势：**
+- 1、他浪费了一半的内存，这太要命了。
+- 2、如果对象的存活率很高，我们可以极端一点，假设是100%存活，那么我们需要将所有对象都复制一遍，并将所有引用地址重置一遍。复制这一工作所花费的时间，在对象存活率达到一定程度时，将会变的不可忽视，所以从以上描述不难看出。复制算法要想使用，最起码对象的存活率要非常低才行，而且 最重要的是，我们必须要克服50%的内存浪费。
 
-- 复制算法它的缺点也是相当明显的。
-  - 1、他浪费了一半的内存，这太要命了。
-  - 2、如果对象的存活率很高，我们可以极端一点，假设是100%存活，那么我们需要将所有对象都复制一遍，并将所有引用地址重置一遍。复制这一工作所花费的时间，在对象存活率达到一定程度时，将会变的不可忽视，所以从以上描述不难看出。复制算法要想使用，最起码对象的存活率要非常低才行，而且 最重要的是，我们必须要克服50%的内存浪费。
-
-> 标记清除（Mark-Sweep）
+标记清除（Mark-Sweep）
 
 - 回收时，对需要存活的对象进行标记；
 - 回收不是绿色的对象。
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20210621225706360.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L20wXzQ2MTUzOTQ5,size_16,color_FFFFFF,t_70#pic_center)
+  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\27.png)
 
 - 当堆中的有效内存空间被耗尽的时候，就会停止整个程序（也被称为stop the world），然后进行两项工作，第一项则是标记，第二项则是清除。
 - 标记：从引用根节点开始标记所有被引用的对象，标记的过程其实就是遍历所有的GC Roots ，然后将所有GC Roots 可达的对象，标记为存活的对象。
-- 清除： 遍历整个堆，把未标记的对象清除。
+- 清除：遍历整个堆，把未标记的对象清除。
 - 缺点：这个算法需要暂停整个应用，会产生内存碎片。两次扫描，严重浪费时间。
 
 > 用通俗的话解释一下 标记/清除算法，就是当程序运行期间，若可以使用的内存被耗尽的时候，GC线程就会被触发并将程序暂停，随后将依旧存活的对象标记一遍，最终再将堆中所有没被标记的对象全部清 除掉，接下来便让程序恢复运行。
