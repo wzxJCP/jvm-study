@@ -25,17 +25,17 @@
 
 ## 2.JVM的体系结构
 
-![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\2.png)
+![在这里插入图片描述](https://github.com/wzxJCP/jvm-study/blob/master/img/2.png)
 
 - **jvm调优：99%都是在方法区和堆，大部分时间调堆。** JNI（java native interface）本地方法接口。
 
-![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\3.jpg)
+![在这里插入图片描述](https://github.com/wzxJCP/jvm-study/blob/master/img/3.png)
 
 ## 3.类加载器
 
 - 作用：加载Class文件——如果new Student()；（具体实例在堆里，引用变量名放栈里） 。
 - 先来看看一个类加载到 JVM 的一个基本结构：
-  ![在这里插入图片描述](D:\2021\Java\JVM\jvm-study\img\4.png)
+  ![在这里插入图片描述](https://github.com/wzxJCP/jvm-study/blob/master/img/4.png)
 
 - 类是模板，对象是具体的，通过new来实例化对象。car1，car2，car3，名字在栈里面，真正的实例，具体的数据在堆里面，栈只是引用地址。
 
