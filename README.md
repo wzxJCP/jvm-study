@@ -13,7 +13,7 @@
 
 ## 1.JVM的位置
 
-![在这里插入图片描述](https://github.com/wzxJCP/jvm-study/img/1.png)
+![在这里插入图片描述](https://github.com/wzxJCP/jvm-study/blob/master/img/1.png)
 
 **三种JVM:**
 
